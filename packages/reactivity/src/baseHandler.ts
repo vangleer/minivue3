@@ -1,3 +1,4 @@
+import { track, trigger } from './effect'
 export const enum ReactiveFlags {
   IS_REACTIVE = '__v_isReactive'
 }
@@ -7,10 +8,19 @@ export const mutableHandlers = {
     if (key === ReactiveFlags.IS_REACTIVE) {
       return true
     }
+
+    track(target, 'get', key)
     return Reflect.get(target, key, receiver)
   },
   set(target, key, value, receiver) {
     // 为代理对象设置值，执行set
-    return Reflect.set(target, key, value, receiver)
+    // 拿到更新前的值
+    const oldValue = target[key]
+    const result = Reflect.set(target, key, value, receiver)
+    if (oldValue !== value) {
+      // 触发依赖
+      trigger(target, 'set', key, value, oldValue)
+    }
+    return result
   }
 }
