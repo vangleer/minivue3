@@ -3,7 +3,7 @@ class ReactiveEffect {
   public active = true // 这个effect是激活状态
   public parent = null
   public deps = []
-  constructor(public fn) {}
+  constructor(public fn, public scheduler) {}
   run() { // 执行effect
     if (!this.active) { // 如果是非激活的情况，只需要执行函数，不需要收集依赖
       return this.fn()
@@ -13,19 +13,29 @@ class ReactiveEffect {
     try {
       this.parent = activeEffect
       activeEffect = this
-      this.fn() // 当稍后取值的时候就可以获取到这个全局变量了
+      cleanupEffect(this)
+      return this.fn() // 当稍后取值的时候就可以获取到这个全局变量了
     } finally {
       activeEffect = this.parent
-      this.parent = null
+    }
+  }
+
+  stop() {
+    if (this.active) {
+      this.active = false
+      cleanupEffect(this) // 停止effect的收集
     }
   }
 }
 
-export function effect(fn) {
+export function effect(fn, options: any = {}) {
   // 这里fn可以根据状态变化 重复执行，effect可以嵌套着写
-  const _effect = new ReactiveEffect(fn) // 创建响应式的effect
+  const _effect = new ReactiveEffect(fn, options.scheduler) // 创建响应式的effect
 
   _effect.run()
+  const runner = _effect.run.bind(_effect)
+  runner.effect = _effect
+  return runner
 }
 
 const targetMap = new WeakMap()
@@ -54,10 +64,34 @@ export function trigger(target, type, key, value, oldValue) {
   const depsMap = targetMap.get(target)
   if (!depsMap) return
 
-  const effects = depsMap.get(key)
+  let effects = depsMap.get(key)
+  if (effects) {
+    effects = new Set(effects)
+    effects.forEach(effect => {
+      // 避免重复执行，造成执行栈溢出
+      if (effect !== activeEffect) {
+        if (effect.scheduler) {
+          effect.scheduler()
+        } else {
+          effect.run()
+        }
+      }
+    })
+  }
+}
 
-  effects && effects.forEach(effect => {
-    // 避免重复执行，造成执行栈溢出
-    if (effect !== activeEffect) effect.run()
-  })
+/**
+ * 先生成一个响应式对象 proxy
+ * effect 默认数据变化要能更新，我们先将正在执行的effect作为全局变量，渲染（取值），
+ * 我们在get方法中收集依赖。
+ * 数据变化的时候会通过对象属性来查找对应的effect集合，找到effect全部执行
+ */
+
+function cleanupEffect(effect: ReactiveEffect) {
+  const { deps } = effect
+  for (let i = 0; i < deps.length; i++) {
+    deps[i].delete(effect)
+  }
+
+  effect.deps.length = 0
 }
