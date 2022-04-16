@@ -51,17 +51,17 @@ export function track(target, type, key) {
   if (!dep) {
     depsMap.set(key, dep = new Set())
   }
-  let shouldTrack = !dep.has(activeEffect)
-  if (shouldTrack) {
-    trackEffects(dep)
-  }
+  trackEffects(dep)
   // 对象 某个属性 -》多个effect
   // WeakMap = { 对象: Map: { name: Set } }
 }
 
 export function trackEffects(dep) {
-  dep.add(activeEffect)
-  activeEffect.deps.push(dep)
+  let shouldTrack = !dep.has(activeEffect)
+  if (shouldTrack) {
+    dep.add(activeEffect)
+    activeEffect.deps.push(dep)
+  }
 }
 
 export function trigger(target, type, key, value, oldValue) {
