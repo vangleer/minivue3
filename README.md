@@ -1,9 +1,8 @@
 # 实现简易版Vue3
 
-reactivity、runtime
+reactivity、computed、watch、runtime
 
 使用pnpm管理
-
 
 ## git 提交规范
 ### 主要type
