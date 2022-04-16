@@ -1,5 +1,5 @@
 export let activeEffect = undefined
-class ReactiveEffect {
+export class ReactiveEffect {
   public active = true // 这个effect是激活状态
   public parent = null
   public deps = []
@@ -53,11 +53,15 @@ export function track(target, type, key) {
   }
   let shouldTrack = !dep.has(activeEffect)
   if (shouldTrack) {
-    dep.add(activeEffect)
-    activeEffect.deps.push(dep)
+    trackEffects(dep)
   }
   // 对象 某个属性 -》多个effect
   // WeakMap = { 对象: Map: { name: Set } }
+}
+
+export function trackEffects(dep) {
+  dep.add(activeEffect)
+  activeEffect.deps.push(dep)
 }
 
 export function trigger(target, type, key, value, oldValue) {
@@ -66,18 +70,22 @@ export function trigger(target, type, key, value, oldValue) {
 
   let effects = depsMap.get(key)
   if (effects) {
-    effects = new Set(effects)
-    effects.forEach(effect => {
-      // 避免重复执行，造成执行栈溢出
-      if (effect !== activeEffect) {
-        if (effect.scheduler) {
-          effect.scheduler()
-        } else {
-          effect.run()
-        }
-      }
-    })
+    triggerEffects(effects)
   }
+}
+
+export function triggerEffects(effects) {
+  effects = new Set(effects)
+  effects.forEach(effect => {
+    // 避免重复执行，造成执行栈溢出
+    if (effect !== activeEffect) {
+      if (effect.scheduler) {
+        effect.scheduler()
+      } else {
+        effect.run()
+      }
+    }
+  })
 }
 
 /**

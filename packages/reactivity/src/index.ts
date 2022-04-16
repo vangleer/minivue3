@@ -1,10 +1,7 @@
-import { reactive } from './reactivity'
-import { effect } from './effect'
+export { reactive } from './reactivity'
+export { effect } from './effect'
+export { computed } from './computed'
 
-export {
-  reactive,
-  effect
-}
 
 
 
