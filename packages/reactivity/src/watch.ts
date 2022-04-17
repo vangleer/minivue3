@@ -16,10 +16,15 @@ export function watch(source, cb) {
   } else {
     return console.warn('[vue watch]: watch source must be a reactive object OR a function')
   }
+  let clean
+  const onCleanup = (fn) => {
+    clean = fn // 保存用户的函数
+  }
   let oldValue
   const job = () => {
+    if (clean) clean() // 下次watch触发，上次watch清理
     const newValue = effect.run()
-    cb(newValue, oldValue)
+    cb(newValue, oldValue, onCleanup)
     oldValue = newValue
   }
   const effect = new ReactiveEffect(getter, job)

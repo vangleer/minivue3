@@ -58,9 +58,10 @@ export function track(target, type, key) {
 
 export function trackEffects(dep) {
   let shouldTrack = !dep.has(activeEffect)
-  if (shouldTrack) {
+  if (shouldTrack && activeEffect) {
     dep.add(activeEffect)
-    activeEffect.deps.push(dep)
+    console.log(activeEffect)
+    activeEffect.deps?.push(dep)
   }
 }
 
