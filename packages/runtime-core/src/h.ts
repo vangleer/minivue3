@@ -16,7 +16,7 @@ export function h(type, propsChildren, children) {
     if (l > 3) {
       children = Array.from(arguments).slice(2)
     } else if(l === 3) {
-      children = [children]
+      children = isArray(children) ? children : [children]
     }
 
     // 其它

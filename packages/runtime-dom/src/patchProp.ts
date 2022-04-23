@@ -18,8 +18,5 @@ export function patchProp(el, key, prevValue, nextValue) {
     // 普通属性
     patchAttr(el, key, nextValue)
   }
-  
-
-  
 
 }
