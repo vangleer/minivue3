@@ -1,4 +1,4 @@
-import { isArray, isObject, isString } from '@vue/shared'
+import { isArray, isObject } from '@vue/shared'
 import { createVnode, isVnode } from './vnode'
 export function h(type, propsChildren, children) {
   const l = arguments.length
