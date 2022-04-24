@@ -9,7 +9,5 @@ export function render(vnode, container) {
   createRenderer(renderOptions).render(vnode, container)
 }
 
-console.log(renderOptions)
-
 export * from '@vue/runtime-core'
 

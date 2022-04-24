@@ -3,6 +3,7 @@ import { forEach } from "@vue/shared"
 
 
 export function patchStyle(el, prevValue, nextValue) {
+  nextValue = nextValue ? nextValue : {}
   forEach(nextValue, key => {
     // 用新的直接覆盖即可
     el.style[key] = nextValue[key]
